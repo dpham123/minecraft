@@ -1,0 +1,9 @@
+name: StarterPlugin
+author: unknownex1
+version: 1.0
+main: me.unknownex1.starter.StarterPlugin
+description: Test Plugin still in development :)
+commands:
+  kit:
+    description: Gives 20 bricks upon use
+    usage: /kit
