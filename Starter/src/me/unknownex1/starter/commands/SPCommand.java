@@ -16,10 +16,6 @@ public class SPCommand implements CommandExecutor {
 		if (sender instanceof Player) {
 			Player player = (Player) sender;
 			player.sendMessage("You are a player");
-			
-			ItemStack bricks = new ItemStack(Material.BRICK, 20);
-			player.getInventory().addItem(bricks);
-			return true;
 		} else {
 			sender.sendMessage("You must be a player");
 		}

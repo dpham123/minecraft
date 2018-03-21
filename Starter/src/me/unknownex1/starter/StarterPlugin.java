@@ -31,6 +31,9 @@ public class StarterPlugin extends JavaPlugin {
 	
 	public void loadConfig() {
 		getConfig().options().copyDefaults(true);
+		if(this.getConfig().getInt("arrow_velocity_override") == 0) {
+			this.getConfig().set("arrow_velocity_override", 0);
+		}
 		saveConfig();
 	}
 	

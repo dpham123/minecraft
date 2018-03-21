@@ -45,12 +45,15 @@ public class VectorDataCollector implements Listener {
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		Date date = new Date();
 		String startTime = dateFormat.format(date);
+		Plugin plugin = StarterPlugin.getPlugin(StarterPlugin.class);
 
 		// Gets the projectile, entity ID, initial velocity, and initial projectile
 		// location
 		Projectile p = event.getEntity();
 		int entityID = p.getEntityId();
+		p.setVelocity(new Vector(0, plugin.getConfig().getInt("arrow_velocity_override"),0));
 		Vector initialVelocity = p.getVelocity();
+		sop(initialVelocity);
 		Location initialProjectileLocation = p.getLocation();
 
 		// Checks if the shooter is a block
@@ -62,7 +65,7 @@ public class VectorDataCollector implements Listener {
 					initialProjectileLocation, blockShooterLocation, p);
 			projectiles.add(projectile);
 		} else {
-			// Gets the entity, entity location, and stores data in a ProjectileData instance
+			// Gets the entity, entity location, and stores data in a ProjectileData object
 			Entity entity = (Entity) p.getShooter();
 			Location entityShooterLocation = entity.getLocation();
 			ProjectileData projectile = new ProjectileData(entityID, startTime, initialVelocity,
@@ -108,64 +111,11 @@ public class VectorDataCollector implements Listener {
 		}
 	}
 
-	@EventHandler
-	private void onBlockBreak(BlockBreakEvent event) {
-		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-		Date date = new Date();
-		String startTime = dateFormat.format(date);
-
-		Player player = event.getPlayer();
-		Vector initialVelocity = player.getVelocity();
-		Location playerInitialLocation = player.getLocation();
-
-		PlayerData playerData = new PlayerData(player, startTime, initialVelocity, playerInitialLocation);
-		players.add(playerData);
-	}
-
-	@EventHandler
-	private void onHitGround(EntityDamageEvent event) {
-		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-		Date date = new Date();
-		String endTime = dateFormat.format(date);
-
-		if (event.getEntityType() != EntityType.PLAYER) {
-			return;
-		}
-
-		if (event.getCause() != EntityDamageEvent.DamageCause.FALL) {
-			return;
-		}
-		event.setCancelled(true);
-		Player player = (Player) event.getEntity();
-
-		if (player.getGameMode() == GameMode.CREATIVE) {
-			return;
-		}
-		Vector endVelocity = player.getVelocity();
-		Location endLocation = player.getLocation();
-
-		PlayerData playerLog = null;
-		if (players.size() == 0) {
-			return;
-		}
-		for (PlayerData pd : players) {
-			if (player == pd.getPlayer()) {
-				playerLog = pd;
-				break;
-			}
-		}
-		players.remove(playerLog);
-		try {
-			logToFilePlayer(playerLog, endTime, endVelocity, endLocation);
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-	}
-
 	private void logToFileProjectile(ProjectileData pd, String endTime, Vector endVelocity,
 			Location endProjectileLocation) throws ParseException {
 		Plugin plugin = StarterPlugin.getPlugin(StarterPlugin.class);
-		File file = new File(plugin.getDataFolder() + "/vectorData.txt");
+		File time = new File(plugin.getDataFolder() + "/time.txt");
+		File distance = new File(plugin.getDataFolder() + "/distance.txt");
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 		Date initialTime = dateFormat.parse(pd.getStartTime());
 		Date finalTime = dateFormat.parse(endTime);
@@ -173,8 +123,14 @@ public class VectorDataCollector implements Listener {
 		double diffInSecs = diff / 1000;
 
 		try {
-			FileWriter fw = new FileWriter(file, true);
+			FileWriter fw = new FileWriter(time, true);
+			FileWriter fw1 = new FileWriter(distance, true);
 			PrintWriter pw = new PrintWriter(fw);
+			PrintWriter pw1 = new PrintWriter(fw1);
+			
+			pw.println(diffInSecs);
+			pw1.println(pd.getInitialProjectileLocation().getY() - endProjectileLocation.getY());
+			/*
 			pw.println("Projectile: " + pd.getP());
 			pw.println("ID: " + pd.getEntityID());
 			pw.println("Start Time: " + pd.getStartTime());
@@ -202,9 +158,12 @@ public class VectorDataCollector implements Listener {
 					/ (2 * (endProjectileLocation.getY() - pd.getInitialProjectileLocation().getY())));
 
 			pw.println("");
+			*/
 
 			pw.close();
 			fw.close();
+			pw1.close();
+			fw1.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
